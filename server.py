@@ -73,8 +73,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 message = header + connection 
                 #print(message)
                 self.request.sendall(bytearray(message,'utf-8'))
-                    #print(content)
-                    #print("good")
+                self.request.close()
+                return
             content = f.read()        
             header = "%s %s %s"%(version, "200", "OK") + "\r\n"
             content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
