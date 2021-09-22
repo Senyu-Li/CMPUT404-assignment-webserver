@@ -19,7 +19,7 @@ import os
 #
 #
 # Furthermore it is derived from the Python documentation examples thus
-# some of the code is Copyright © 2001-2013 Python Software
+# some of the code is Copyright 漏 2001-2013 Python Software
 # Foundation; All Rights Reserved
 #
 # http://docs.python.org/2/library/socketserver.html
@@ -33,7 +33,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
+        #print ("Got a request of: %s\n" % self.data)
         data_decode = self.data.decode('utf-8')
         data_first_line = data_decode.split("\r\n")[0]
         #print(data_first_line.split())
@@ -43,7 +43,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         if(path[-1] == '/'):
             path = path + 'index.html'
         else:
-            print(path)
+            #print(path)
             content_type = guess_type(path)[0]
             if(content_type == None):
                 if(os.path.exists(path + '/')):
@@ -51,49 +51,49 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     header = "%s %s %s"%(version, "301", "Moved Permanently") + "\r\n"
                     connection = "Connection: close"+ "\r\n\r\n"
                     message = header + connection + parsed_url.path + '/' 
-                    print(message)
+                    #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
-                    self.request.close() 
+                    self.request.close()
+                    return
                 else:
                     header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
                     connection = "Connection: close"+ "\r\n\r\n"
                     message = header + connection 
-                    print(message)
+                    #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
                     self.request.close()
-                    
-            else:
-                pass   
+                    return  
         if(method == 'GET'):      
             try:
                 with open(path, "r")  as f:
                     content = f.read()
                     #print(content)
-                    print("good")
+                    #print("good")
                     
                     header = "%s %s %s"%(version, "200", "OK") + "\r\n"
                     content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
-                    print(path)
+                    #print(path)
                     content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
                     connection = "Connection: close"+ "\r\n\r\n"
                     message = header + content_type_m + content_length + connection  + content
-                    print(message)
+                    #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))  
             except Exception as e:
                 header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
                 connection = "Connection: close"+ "\r\n\r\n"
                 message = header + connection 
-                print(message)
+                #print(message)
                 self.request.sendall(bytearray(message,'utf-8'))  
-            finally:
-                self.request.close()
+            """finally:
+                self.request.close()"""
         else:
             header = "%s %s %s"%(version, "405", "405 Method Not Allowed") + "\r\n"
             connection = "Connection: close"+ "\r\n\r\n"
             message = header + connection 
-            print(message)
+            #print(message)
             self.request.sendall(bytearray(message,'utf-8'))
-            self.request.close()
+        self.request.close()
+        return
 
         
 
