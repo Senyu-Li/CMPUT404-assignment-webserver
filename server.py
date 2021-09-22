@@ -65,27 +65,27 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     return  
         if(method == 'GET'):      
             try:
-                with open(path, "r")  as f:
-                    content = f.read()
-                    #print(content)
-                    #print("good")
+                f =  open(path, "r")
                     
-                    header = "%s %s %s"%(version, "200", "OK") + "\r\n"
-                    content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
-                    #print(path)
-                    content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
-                    connection = "Connection: close"+ "\r\n\r\n"
-                    message = header + content_type_m + content_length + connection  + content
-                    #print(message)
-                    self.request.sendall(bytearray(message,'utf-8'))  
             except Exception as e:
                 header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
                 connection = "Connection: close"+ "\r\n\r\n"
                 message = header + connection 
                 #print(message)
-                self.request.sendall(bytearray(message,'utf-8'))  
-            """finally:
-                self.request.close()"""
+                self.request.sendall(bytearray(message,'utf-8'))
+                    #print(content)
+                    #print("good")
+            content = f.read()        
+            header = "%s %s %s"%(version, "200", "OK") + "\r\n"
+            content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
+            #print(path)
+            content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
+            connection = "Connection: close"+ "\r\n\r\n"
+            message = header + content_type_m + content_length + connection  + content
+            #print(message)
+            self.request.sendall(bytearray(message,'utf-8')) 
+            f.close() 
+              
         else:
             header = "%s %s %s"%(version, "405", "405 Method Not Allowed") + "\r\n"
             connection = "Connection: close"+ "\r\n\r\n"
