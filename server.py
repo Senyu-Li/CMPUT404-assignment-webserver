@@ -33,7 +33,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        #print ("Got a request of: %s\n" % self.data)
+        print ("Got a request of: %s\n" % self.data)
         data_decode = self.data.decode('utf-8')
         data_first_line = data_decode.split("\r\n")[0]
         #print(data_first_line.split())
