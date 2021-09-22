@@ -1,6 +1,8 @@
 #  coding: utf-8 
 import socketserver
-
+from urllib.parse import urlparse
+from mimetypes import guess_type
+import os
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,15 +34,79 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        data_decode = self.data.decode('utf-8')
+        data_first_line = data_decode.split("\r\n")[0]
+        #print(data_first_line.split())
+        method, url, version = data_first_line.split()
+        parsed_url = urlparse(url)
+        path = "www" + parsed_url.path
+        if(path[-1] == '/'):
+            path = path + 'index.html'
+        else:
+            print(path)
+            content_type = guess_type(path)[0]
+            if(content_type == None):
+                if(os.path.exists(path + '/')):
+                    
+                    header = "%s %s %s"%(version, "301", "Moved Permanently") + "\r\n"
+                    connection = "Connection: close"+ "\r\n\r\n"
+                    message = header + connection + parsed_url.path + '/' 
+                    print(message)
+                    self.request.sendall(bytearray(message,'utf-8'))
+                    self.request.close() 
+                else:
+                    header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
+                    connection = "Connection: close"+ "\r\n\r\n"
+                    message = header + connection 
+                    print(message)
+                    self.request.sendall(bytearray(message,'utf-8'))
+                    self.request.close()
+                    
+            else:
+                pass   
+        if(method == 'GET'):      
+            try:
+                with open(path, "r")  as f:
+                    content = f.read()
+                    #print(content)
+                    print("good")
+                    
+                    header = "%s %s %s"%(version, "200", "OK") + "\r\n"
+                    content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
+                    print(path)
+                    content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
+                    connection = "Connection: close"+ "\r\n\r\n"
+                    message = header + content_type_m + content_length + connection  + content
+                    print(message)
+                    self.request.sendall(bytearray(message,'utf-8'))  
+            except Exception as e:
+                header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
+                connection = "Connection: close"+ "\r\n\r\n"
+                message = header + connection 
+                print(message)
+                self.request.sendall(bytearray(message,'utf-8'))  
+            finally:
+                self.request.close()
+        else:
+            header = "%s %s %s"%(version, "405", "405 Method Not Allowed") + "\r\n"
+            connection = "Connection: close"+ "\r\n\r\n"
+            message = header + connection 
+            print(message)
+            self.request.sendall(bytearray(message,'utf-8'))
+            self.request.close()
+
+        
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
 
-    socketserver.TCPServer.allow_reuse_address = True
+    #socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
     server = socketserver.TCPServer((HOST, PORT), MyWebServer)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     server.serve_forever()
+    #Test = "good/nice/hh/"
+    #print(guess_type(Test))
+    
