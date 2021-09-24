@@ -1,4 +1,5 @@
 #  coding: utf-8 
+from ntpath import realpath
 import socketserver
 from urllib.parse import urlparse
 from mimetypes import guess_type
@@ -33,7 +34,21 @@ import time
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.request.settimeout(0.3)
+        self.data = b""
+        while True:
+            try:
+                data = self.request.recv(1024)
+                if not data:
+                     break
+                self.data += data
+            except:
+                break
+        if self.data == b'':
+            self.request.close()
+            return
+        self.data = self.data.strip()
+        #self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
         data_decode = self.data.decode('utf-8')
         data_first_line = data_decode.split("\r\n")[0]
@@ -41,6 +56,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         method, url, version = data_first_line.split()
         parsed_url = urlparse(url)
         path = "www" + parsed_url.path
+        working_position =  os.getcwd() + "/www"
+        real_path = os.path.realpath(path)
+        print(working_position)
+        print(real_path)
+        print("hh")
+
+        if(not os.path.commonprefix([working_position,real_path]) == working_position):
+            header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
+            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime())
+            connection = "Connection: close"+ "\r\n\r\n"
+            message = header + date + connection 
+            #print(message)
+            print("very nice")
+            self.request.sendall(bytearray(message,'utf-8'))
+            self.request.close()
+            return
+
+
         if(path[-1] == '/'):
             path = path + 'index.html'
         else:
@@ -48,7 +81,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             content_type = guess_type(path)[0]
             if(content_type == None):
                 if(os.path.exists(path + '/')):
-                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
+                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime())
                     header = "%s %s %s"%(version, "301", "Moved Permanently") + "\r\n"
                     connection = "Connection: close"+ "\r\n\r\n"
                     message = header + date + connection + parsed_url.path + '/' 
@@ -59,7 +92,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     return
                 else:
                     header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
-                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
+                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime())
                     connection = "Connection: close"+ "\r\n\r\n"
                     message = header + date + connection 
                     #print(message)
@@ -72,7 +105,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     
             except Exception as e:
                 header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
-                date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
+                date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime())
                 connection = "Connection: close"+ "\r\n\r\n"
                 message = header + date + connection 
                 #print(message)
@@ -83,17 +116,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
             header = "%s %s %s"%(version, "200", "OK") + "\r\n"
             content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
             #print(path)
-            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
+            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %Z\r\n", time.gmtime())
             content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
             connection = "Connection: close"+ "\r\n\r\n"
             message = header + content_type_m + content_length + date + connection  + content
-            #print(message)
+            print(message)
             self.request.sendall(bytearray(message,'utf-8')) 
             f.close() 
               
         else:
             header = "%s %s %s"%(version, "405", "405 Method Not Allowed") + "\r\n"
-            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
+            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime())
             connection = "Connection: close"+ "\r\n\r\n"
             message = header + date + connection 
             #print(message)
