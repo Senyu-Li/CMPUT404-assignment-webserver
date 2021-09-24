@@ -21,7 +21,7 @@ import time
 #
 #
 # Furthermore it is derived from the Python documentation examples thus
-# some of the code is Copyright Êºè 2001-2013 Python Software
+# some of the code is Copyright Êº?2001-2013 Python Software
 # Foundation; All Rights Reserved
 #
 # http://docs.python.org/2/library/socketserver.html
@@ -45,7 +45,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             except:
                 break
         if self.data == b'':
-            self.request.close()
+            #self.request.close()
             return
         self.data = self.data.strip()
         #self.data = self.request.recv(1024).strip()
@@ -58,9 +58,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
         path = "www" + parsed_url.path
         working_position =  os.getcwd() + "/www"
         real_path = os.path.realpath(path)
-        print(working_position)
-        print(real_path)
-        print("hh")
+        #print(working_position)
+        #print(real_path)
+        #print("hh")
 
         if(not os.path.commonprefix([working_position,real_path]) == working_position):
             header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
@@ -70,7 +70,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             #print(message)
             print("very nice")
             self.request.sendall(bytearray(message,'utf-8'))
-            self.request.close()
+            #self.request.close()
             return
 
 
@@ -88,7 +88,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     
                     #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
-                    self.request.close()
+                    #self.request.close()
                     return
                 else:
                     header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
@@ -97,7 +97,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     message = header + date + connection 
                     #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
-                    self.request.close()
+                    #self.request.close()
                     return  
         if(method == 'GET'):      
             try:
@@ -110,7 +110,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 message = header + date + connection 
                 #print(message)
                 self.request.sendall(bytearray(message,'utf-8'))
-                self.request.close()
+                #self.request.close()
                 return
             content = f.read()        
             header = "%s %s %s"%(version, "200", "OK") + "\r\n"
@@ -120,7 +120,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
             connection = "Connection: close"+ "\r\n\r\n"
             message = header + content_type_m + content_length + date + connection  + content
-            print(message)
+            #print(message)
             self.request.sendall(bytearray(message,'utf-8')) 
             f.close() 
               
@@ -131,15 +131,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
             message = header + date + connection 
             #print(message)
             self.request.sendall(bytearray(message,'utf-8'))
-        self.request.close()
+        #self.request.close()
         return
-
+    def finish(self):
+      self.request.close()
+      
         
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
 
-    #socketserver.TCPServer.allow_reuse_address = True
+    socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
     server = socketserver.TCPServer((HOST, PORT), MyWebServer)
 
