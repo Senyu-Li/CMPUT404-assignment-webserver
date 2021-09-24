@@ -3,6 +3,7 @@ import socketserver
 from urllib.parse import urlparse
 from mimetypes import guess_type
 import os
+import time
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,18 +48,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
             content_type = guess_type(path)[0]
             if(content_type == None):
                 if(os.path.exists(path + '/')):
-                    
+                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
                     header = "%s %s %s"%(version, "301", "Moved Permanently") + "\r\n"
                     connection = "Connection: close"+ "\r\n\r\n"
-                    message = header + connection + parsed_url.path + '/' 
+                    message = header + date + connection + parsed_url.path + '/' 
+                    
                     #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
                     self.request.close()
                     return
                 else:
                     header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
+                    date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
                     connection = "Connection: close"+ "\r\n\r\n"
-                    message = header + connection 
+                    message = header + date + connection 
                     #print(message)
                     self.request.sendall(bytearray(message,'utf-8'))
                     self.request.close()
@@ -69,8 +72,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     
             except Exception as e:
                 header = "%s %s %s"%(version, "404", "NOT Found") + "\r\n"
+                date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
                 connection = "Connection: close"+ "\r\n\r\n"
-                message = header + connection 
+                message = header + date + connection 
                 #print(message)
                 self.request.sendall(bytearray(message,'utf-8'))
                 self.request.close()
@@ -79,17 +83,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
             header = "%s %s %s"%(version, "200", "OK") + "\r\n"
             content_type_m = "Content-Type: %s; charset=%s"%(guess_type(path)[0], 'utf-8') + "\r\n"
             #print(path)
+            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
             content_length = "Content-Length: %s"%( str(len(content)))+ "\r\n" 
             connection = "Connection: close"+ "\r\n\r\n"
-            message = header + content_type_m + content_length + connection  + content
+            message = header + content_type_m + content_length + date + connection  + content
             #print(message)
             self.request.sendall(bytearray(message,'utf-8')) 
             f.close() 
               
         else:
             header = "%s %s %s"%(version, "405", "405 Method Not Allowed") + "\r\n"
+            date = time.strftime("DATE: %a, %d %b %Y %I:%M:%S %p %Z\r\n", time.gmtime()) + "\r\n"
             connection = "Connection: close"+ "\r\n\r\n"
-            message = header + connection 
+            message = header + date + connection 
             #print(message)
             self.request.sendall(bytearray(message,'utf-8'))
         self.request.close()
